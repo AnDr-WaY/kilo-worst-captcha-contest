@@ -8,10 +8,14 @@
   var TOTAL_ANGLES = 10;
   var TOLERANCE = 2;
   var HOLD_MS = 500;
-  var TIME_PER_ANGLE_MS = 5000;
   var MIN_ANGLE = -40;
   var MAX_ANGLE = 40;
   var MIN_SEPARATION = 10;
+
+  function getTimeForAngle(index) {
+    if (index < 3) return 5000;
+    return 4000;
+  }
 
   function randomAngle() {
     return MIN_ANGLE + Math.random() * (MAX_ANGLE - MIN_ANGLE);
@@ -71,14 +75,15 @@
      */
     startTimer: function () {
       var self = this;
-      self.timerEnd = Date.now() + TIME_PER_ANGLE_MS;
+      var timeLimit = getTimeForAngle(self.currentIndex);
+      self.timerEnd = Date.now() + timeLimit;
       self.inRangeSince = null;
 
       if (self.timerInterval) clearInterval(self.timerInterval);
 
       self.timerInterval = setInterval(function () {
         var remaining = Math.max(0, self.timerEnd - Date.now());
-        if (self.onTick) self.onTick(remaining, TIME_PER_ANGLE_MS);
+        if (self.onTick) self.onTick(remaining, timeLimit);
 
         if (remaining <= 0) {
           self.stopTimer();
