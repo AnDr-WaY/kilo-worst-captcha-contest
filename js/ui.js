@@ -11,7 +11,7 @@
   var currentGamma = 0;
   var targetGamma = 0;
   var isInTolerance = false;
-  var bubbleX = 0;
+  var bubbleRad = null;
 
   var COLORS = {
     bg: '#1a1d27',
@@ -92,7 +92,7 @@
       ctx.fillStyle = COLORS.bg;
       ctx.fill();
 
-      // Tick marks every 10 degrees
+      // Tick marks every 10 degrees (full 180° arc from left to right)
       for (var deg = -90; deg <= 90; deg += 10) {
         var rad = ((deg - 90) * Math.PI) / 180;
         var isMajor = deg % 30 === 0;
@@ -106,7 +106,7 @@
         ctx.stroke();
       }
 
-      // Target zone arc (highlighted sector)
+      // Target zone arc (highlighted sector at target angle on the circle)
       var targetRad = ((targetGamma - 90) * Math.PI) / 180;
       var halfArc = (2 * Math.PI) / 180; // 2 degrees tolerance
       ctx.beginPath();
@@ -129,12 +129,17 @@
       ctx.fillStyle = COLORS.centerDot;
       ctx.fill();
 
-      // Bubble — smooth interpolation toward target X
+      // Bubble — moves along the arc at bubble radius from center
       var clampedGamma = Math.max(-45, Math.min(45, currentGamma));
-      var targetBubbleX = cx + (clampedGamma / 45) * (radius - 24);
-      bubbleX += (targetBubbleX - bubbleX) * 0.3;
+      var bubbleOrbitR = radius - 24; // distance from center to bubble
+      var targetBubbleRad = ((clampedGamma - 90) * Math.PI) / 180;
 
-      var bubbleY = cy;
+      // Smooth interpolation of angle
+      if (typeof bubbleRad !== 'number') bubbleRad = targetBubbleRad;
+      bubbleRad += (targetBubbleRad - bubbleRad) * 0.3;
+
+      var bubbleX = cx + bubbleOrbitR * Math.cos(bubbleRad);
+      var bubbleY = cy + bubbleOrbitR * Math.sin(bubbleRad);
       var bubbleR = 14;
 
       // Glow

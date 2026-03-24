@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var TOTAL_ANGLES = 5;
+  var TOTAL_ANGLES = 10;
   var TOLERANCE = 2;
   var HOLD_MS = 500;
   var TIME_PER_ANGLE_MS = 5000;
