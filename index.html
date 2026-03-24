@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Tilt Captcha</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="captcha-container">
+    <!-- State: DETECT / REQUEST_PERMISSION -->
+    <div id="screen-start" class="screen active">
+      <h1>Tilt Captcha</h1>
+      <p>Prove you're human using your phone's accelerometer.</p>
+      <button id="btn-start" class="btn-primary">Start Verification</button>
+    </div>
+
+    <!-- State: QR_FALLBACK -->
+    <div id="screen-qr" class="screen">
+      <h1>Tilt Captcha</h1>
+      <p class="subtitle">If you are a human, you must have a phone.</p>
+      <p>Scan this QR code with your mobile device:</p>
+      <div id="qrcode"></div>
+    </div>
+
+    <!-- State: CHALLENGE -->
+    <div id="screen-challenge" class="screen">
+      <h1>Tilt Captcha</h1>
+      <div class="level-wrapper">
+        <canvas id="level-canvas" width="280" height="280"></canvas>
+      </div>
+      <div id="progress-text" class="progress-text">Angle 1 of 5</div>
+      <div id="target-text" class="target-text">Target: 0&deg;</div>
+      <div id="timer-bar" class="timer-bar">
+        <div id="timer-fill" class="timer-fill"></div>
+      </div>
+      <div id="timer-text" class="timer-text">5.0s</div>
+      <div id="current-text" class="current-text">Current: 0.0&deg;</div>
+    </div>
+
+    <!-- State: SUCCESS -->
+    <div id="screen-success" class="screen">
+      <div class="success-icon">&#10003;</div>
+      <h1>Verified</h1>
+      <p>You are human.</p>
+    </div>
+
+    <!-- State: RESTART (brief overlay) -->
+    <div id="screen-restart" class="screen">
+      <div class="restart-icon">&#8635;</div>
+      <h1>Time's Up</h1>
+      <p>Restarting from angle 1...</p>
+    </div>
+  </div>
+
+  <script src="js/tilt.js"></script>
+  <script src="js/challenge.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
