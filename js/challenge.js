@@ -14,7 +14,8 @@
 
   function getTimeForAngle(index) {
     if (index < 3) return 5000;
-    return 4000;
+    if (index < 9) return 4000;
+    return 2000;
   }
 
   function randomAngle() {

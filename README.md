@@ -21,7 +21,7 @@ Desktop users get a QR code to scan with their phone. No phone, no verification.
 
 - **Canvas-rendered bubble level** with smooth 60fps animation
 - **500ms hold requirement** — no sweeping through angles allowed
-- **Progressive difficulty** — rounds 1–3: 5s, rounds 4–10: 4s each
+- **Progressive difficulty** — rounds 1–3: 5s, rounds 4–9: 4s, round 10: 2s
 - **iOS 13+ permission handling** — properly requests DeviceOrientation access
 - **QR code fallback** for desktop users
 - **Zero dependencies** — vanilla HTML/CSS/JS, no build step
