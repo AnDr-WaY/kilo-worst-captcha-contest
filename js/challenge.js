@@ -135,14 +135,20 @@
         } else if (Date.now() - this.inRangeSince >= HOLD_MS) {
           this.stopTimer();
           this.currentIndex++;
+
+          // Check bonus rounds FIRST — before completion check
+          // Fire when we complete any block of TOTAL_ANGLES rounds
+          if (this.currentIndex >= TOTAL_ANGLES &&
+              this.currentIndex % TOTAL_ANGLES === 0 &&
+              this.onRoundsExtended) {
+            this.onRoundsExtended(this.currentIndex);
+          }
+
+          // Now check completion (totalTarget may have been extended by bonus)
           if (this.currentIndex >= this.totalTarget) {
             this.active = false;
             if (this.onAllComplete) this.onAllComplete();
           } else {
-            // Check if we completed a block of TOTAL_ANGLES rounds
-            if (this.currentIndex > 0 && this.currentIndex % TOTAL_ANGLES === 0 && this.onRoundsExtended) {
-              this.onRoundsExtended(this.currentIndex);
-            }
             if (this.onAngleComplete) this.onAngleComplete(this.currentIndex);
             this.startTimer();
           }

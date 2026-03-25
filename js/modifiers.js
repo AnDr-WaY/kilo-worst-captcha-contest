@@ -37,6 +37,7 @@
         var idx = Math.floor(Math.random() * untried.length);
         return untried[idx];
       }
+      // All modifiers tried — fall through to random below
     }
 
     if (Math.random() < 0.4) {

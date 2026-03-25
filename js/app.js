@@ -58,14 +58,17 @@
   };
 
   challenge.onRoundsExtended = function (currentIndex) {
-    challenge.addRounds(5);
-    ui.updateProgress(currentIndex + 1, challenge.totalTarget);
-    // Show bonus message
-    var msg = document.getElementById('bonus-message');
-    if (msg) {
-      msg.textContent = 'Not sure if you are a human + 5 rounds bozo';
-      msg.style.display = 'block';
-      setTimeout(function () { msg.style.display = 'none'; }, 3000);
+    // Only add bonus rounds if there are still untried modifiers
+    if (!modifiers.allTried()) {
+      challenge.addRounds(5);
+      ui.updateProgress(currentIndex + 1, challenge.totalTarget);
+      // Show bonus message
+      var msg = document.getElementById('bonus-message');
+      if (msg) {
+        msg.textContent = 'Not sure if you are a human + 5 rounds bozo';
+        msg.style.display = 'block';
+        setTimeout(function () { msg.style.display = 'none'; }, 3000);
+      }
     }
   };
 
