@@ -139,8 +139,8 @@
             this.active = false;
             if (this.onAllComplete) this.onAllComplete();
           } else {
-            // Check if we just completed the initial block
-            if (this.currentIndex === TOTAL_ANGLES && this.onRoundsExtended) {
+            // Check if we completed a block of TOTAL_ANGLES rounds
+            if (this.currentIndex > 0 && this.currentIndex % TOTAL_ANGLES === 0 && this.onRoundsExtended) {
               this.onRoundsExtended(this.currentIndex);
             }
             if (this.onAngleComplete) this.onAngleComplete(this.currentIndex);

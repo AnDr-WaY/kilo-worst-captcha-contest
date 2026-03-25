@@ -333,6 +333,7 @@
 
       if (!modifier) {
         banner.classList.add('hidden');
+        document.body.classList.remove('rainbow-bg');
         return;
       }
 
@@ -348,6 +349,12 @@
       banner.textContent = labels[modifier] || modifier;
       banner.classList.add(cssClass);
       canvas.classList.add(cssClass + '-active');
+
+      if (modifier === 'RAINBOW') {
+        document.body.classList.add('rainbow-bg');
+      } else {
+        document.body.classList.remove('rainbow-bg');
+      }
     },
 
     /**
@@ -362,6 +369,7 @@
       if (canvas) {
         canvas.className = '';
       }
+      document.body.classList.remove('rainbow-bg');
     },
 
     /**

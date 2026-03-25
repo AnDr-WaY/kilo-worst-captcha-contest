@@ -42,7 +42,8 @@
     ui.updateTargetText(challenge.getCurrentTarget());
 
     // Roll a new modifier for this round
-    var forceUntried = !modifiers.allTried() && nextIndex >= challenge.TOTAL_ANGLES;
+    var inBonusRounds = nextIndex >= challenge.TOTAL_ANGLES;
+    var forceUntried = inBonusRounds && !modifiers.allTried();
     var mod = modifiers.activate(challenge.getCurrentTarget(), forceUntried);
     if (mod) {
       ui.showModifierBanner(mod);

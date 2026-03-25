@@ -310,6 +310,20 @@ h1 {
 }
 
 /* Canvas modifier effects */
+body.rainbow-bg {
+  animation: rainbowBg 3s linear infinite;
+}
+
+@keyframes rainbowBg {
+  0% { background: hsl(0, 60%, 8%); }
+  17% { background: hsl(60, 60%, 8%); }
+  33% { background: hsl(120, 60%, 8%); }
+  50% { background: hsl(180, 60%, 8%); }
+  67% { background: hsl(240, 60%, 8%); }
+  83% { background: hsl(300, 60%, 8%); }
+  100% { background: hsl(360, 60%, 8%); }
+}
+
 #level-canvas.mod-drunken-active {
   animation: canvasWobble 0.8s ease-in-out infinite;
 }
@@ -359,17 +373,19 @@ h1 {
 .taunt-emoji {
   position: absolute;
   font-size: 1.8rem;
+  top: -50px;
   animation: flyEmoji linear infinite;
+  opacity: 0;
 }
 
 @keyframes flyEmoji {
   0% {
-    transform: translateY(110vh) rotate(0deg);
+    transform: translateY(-10vh) rotate(0deg);
     opacity: 1;
   }
   100% {
-    transform: translateY(-30vh) rotate(720deg);
-    opacity: 0.6;
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0.8;
   }
 }
 
