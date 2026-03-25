@@ -8,6 +8,7 @@
   var tilt = window.TiltCaptcha.tilt;
   var challenge = window.TiltCaptcha.challenge;
   var ui = window.TiltCaptcha.ui;
+  var modifiers = window.TiltCaptcha.modifiers;
 
   var STATES = {
     DETECT: 'DETECT',
@@ -20,6 +21,7 @@
 
   var state = STATES.DETECT;
   var btnStart = document.getElementById('btn-start');
+  var btnRestart = document.getElementById('btn-restart');
 
   ui.init();
 
@@ -30,16 +32,37 @@
   };
 
   challenge.onAngleComplete = function (nextIndex) {
+    // Deactivate previous modifier
+    modifiers.deactivate();
+    ui.hideModifierBanner();
+
     ui.updateProgress(nextIndex + 1, challenge.TOTAL_ANGLES);
     ui.setTarget(challenge.getCurrentTarget());
     ui.updateTargetText(challenge.getCurrentTarget());
+
+    // Roll a new modifier for this round
+    var mod = modifiers.activate(challenge.getCurrentTarget());
+    if (mod) {
+      ui.showModifierBanner(mod);
+      // For 50-50, show the fake target in the UI text
+      if (mod === 'FIFTY_FIFTY') {
+        var fake = modifiers.getFakeTarget();
+        if (fake != null) {
+          ui.updateTargetText(fake);
+        }
+      }
+    }
   };
 
   challenge.onAllComplete = function () {
+    modifiers.deactivate();
+    ui.hideModifierBanner();
     transition(STATES.SUCCESS);
   };
 
   challenge.onTimeout = function () {
+    modifiers.deactivate();
+    ui.hideModifierBanner();
     transition(STATES.RESTART);
   };
 
@@ -103,7 +126,9 @@
 
   function startChallenge() {
     ui.showScreen('challenge');
+    ui.hideModifierBanner();
     challenge.init();
+    modifiers.reset();
 
     var idx = challenge.currentIndex;
     ui.updateProgress(idx + 1, challenge.TOTAL_ANGLES);
@@ -138,10 +163,7 @@
     tilt.stop();
     ui.stop();
     ui.showScreen('restart');
-
-    setTimeout(function () {
-      transition(STATES.CHALLENGE);
-    }, 1500);
+    ui.spawnTauntEmojis();
   }
 
   // --- Button handler ---
@@ -167,6 +189,13 @@
       });
       return;
     }
+  });
+
+  // --- Restart button handler ---
+
+  btnRestart.addEventListener('click', function () {
+    ui.clearTauntEmojis();
+    transition(STATES.CHALLENGE);
   });
 
   // --- Auto-start detection ---

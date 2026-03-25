@@ -193,3 +193,192 @@ h1 {
 .repo-link:active {
   border-bottom-color: var(--accent);
 }
+
+/* Epilepsy warning */
+.epilepsy-warning {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border: 2px solid #eab308;
+  border-radius: 10px;
+  background: rgba(234, 179, 8, 0.1);
+  color: #eab308;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-align: left;
+}
+
+/* Challenge screen positioning */
+#screen-challenge {
+  position: relative;
+}
+
+/* Modifier banner */
+.modifier-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  z-index: 10;
+  animation: bannerPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modifier-banner.hidden {
+  display: none;
+}
+
+@keyframes bannerPop {
+  from { transform: scale(0.8) translateY(-10px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Drunken — wobbly skew text */
+.modifier-banner.mod-drunken {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  font-style: italic;
+  animation: bannerPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), wobble 1.5s ease-in-out infinite;
+}
+
+@keyframes wobble {
+  0%, 100% { transform: skewX(0deg); }
+  25% { transform: skewX(-5deg); }
+  75% { transform: skewX(5deg); }
+}
+
+/* Rainbow — cycling hue */
+.modifier-banner.mod-rainbow {
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  animation: bannerPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), rainbowText 2s linear infinite;
+}
+
+@keyframes rainbowText {
+  0% { color: #ef4444; }
+  17% { color: #f97316; }
+  33% { color: #eab308; }
+  50% { color: #22c55e; }
+  67% { color: #3b82f6; }
+  83% { color: #8b5cf6; }
+  100% { color: #ef4444; }
+}
+
+/* Epileptic — rapid flash */
+.modifier-banner.mod-epileptic {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  animation: bannerPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), flashText 0.2s steps(2) infinite;
+}
+
+@keyframes flashText {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.3; }
+}
+
+/* 50-50 — pulsing */
+.modifier-banner.mod-fifty-fifty {
+  background: rgba(236, 72, 153, 0.2);
+  color: #ec4899;
+  border: 1px solid rgba(236, 72, 153, 0.4);
+  animation: bannerPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), pulseBanner 1s ease-in-out infinite;
+}
+
+@keyframes pulseBanner {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Duplicate — ghostly float */
+.modifier-banner.mod-duplicate {
+  background: rgba(96, 165, 250, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  animation: bannerPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), ghostFloat 2s ease-in-out infinite;
+}
+
+@keyframes ghostFloat {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(-3px); opacity: 0.7; }
+}
+
+/* Canvas modifier effects */
+#level-canvas.mod-drunken-active {
+  animation: canvasWobble 1.5s ease-in-out infinite;
+}
+
+@keyframes canvasWobble {
+  0%, 100% { transform: skewX(0deg) skewY(0deg); }
+  25% { transform: skewX(-3deg) skewY(-1deg); }
+  50% { transform: skewX(2deg) skewY(1deg); }
+  75% { transform: skewX(-1deg) skewY(2deg); }
+}
+
+#level-canvas.mod-rainbow-active {
+  animation: canvasHue 3s linear infinite;
+}
+
+@keyframes canvasHue {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+#level-canvas.mod-epileptic-active {
+  animation: canvasFlash 0.15s steps(2) infinite;
+}
+
+@keyframes canvasFlash {
+  0%, 49% { filter: none; }
+  50%, 100% { filter: invert(1); }
+}
+
+/* Taunt screen */
+#screen-restart {
+  position: relative;
+  overflow: hidden;
+}
+
+.taunt-emojis {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.taunt-emoji {
+  position: absolute;
+  font-size: 1.8rem;
+  animation: flyEmoji linear forwards;
+  opacity: 0;
+}
+
+@keyframes flyEmoji {
+  0% {
+    transform: translateY(110vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-20vh) rotate(360deg);
+    opacity: 0.3;
+  }
+}
+
+.taunt-title {
+  animation: tauntBounce 0.8s ease-in-out infinite;
+  color: var(--danger);
+}
+
+@keyframes tauntBounce {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(-2deg); }
+  50% { transform: scale(1) rotate(0deg); }
+  75% { transform: scale(1.1) rotate(2deg); }
+}

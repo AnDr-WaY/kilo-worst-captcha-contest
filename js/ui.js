@@ -116,6 +116,23 @@
       ctx.fillStyle = COLORS.targetZone;
       ctx.fill();
 
+      // Fake target zone (50-50 modifier)
+      if (window.TiltCaptcha && window.TiltCaptcha.modifiers) {
+        var mods = window.TiltCaptcha.modifiers;
+        if (mods.getActive() === 'FIFTY_FIFTY') {
+          var fakeTarget = mods.getFakeTarget();
+          if (fakeTarget != null) {
+            var fakeRad = ((fakeTarget - 90) * Math.PI) / 180;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius - 4, fakeRad - halfArc, fakeRad + halfArc);
+            ctx.lineTo(cx, cy);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(236, 72, 153, 0.3)';
+            ctx.fill();
+          }
+        }
+      }
+
       // Outer ring
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
@@ -163,6 +180,32 @@
       ctx.strokeStyle = 'rgba(228, 230, 237, 0.15)';
       ctx.lineWidth = 2;
       ctx.stroke();
+
+      // Ghost bubble (Duplicate modifier)
+      if (window.TiltCaptcha && window.TiltCaptcha.modifiers) {
+        var mods = window.TiltCaptcha.modifiers;
+        if (mods.getActive() === 'DUPLICATE') {
+          var ghostAngle = mods.getGhostAngle(Date.now(), clampedGamma);
+          var clampedGhost = Math.max(-45, Math.min(45, ghostAngle));
+          var ghostRad = ((clampedGhost - 90) * Math.PI) / 180;
+          var ghostX = cx + bubbleOrbitR * Math.cos(ghostRad);
+          var ghostY = cy + bubbleOrbitR * Math.sin(ghostRad);
+          var ghostR = 12;
+
+          ctx.beginPath();
+          ctx.arc(ghostX, ghostY, ghostR, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(96, 165, 250, 0.4)';
+          ctx.fill();
+
+          // Ghost direction indicator
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(ghostX, ghostY);
+          ctx.strokeStyle = 'rgba(96, 165, 250, 0.15)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
     },
 
     /**
@@ -208,6 +251,52 @@
     },
 
     /**
+     * Show the modifier banner with appropriate styling.
+     * @param {string|null} modifier — modifier name or null to hide
+     */
+    showModifierBanner: function (modifier) {
+      var banner = document.getElementById('modifier-banner');
+      var canvas = document.getElementById('level-canvas');
+      if (!banner) return;
+
+      // Clear previous classes
+      banner.className = 'modifier-banner';
+      canvas.className = '';
+
+      if (!modifier) {
+        banner.classList.add('hidden');
+        return;
+      }
+
+      var labels = {
+        DRUNKEN: 'DRUNKEN MODE',
+        RAINBOW: 'RAINBOW MODE',
+        EPILEPTIC: 'EPILEPTIC MODE',
+        FIFTY_FIFTY: '50-50 MODE',
+        DUPLICATE: 'DUPLICATE MODE',
+      };
+
+      var cssClass = 'mod-' + modifier.toLowerCase().replace('_', '-');
+      banner.textContent = labels[modifier] || modifier;
+      banner.classList.add(cssClass);
+      canvas.classList.add(cssClass + '-active');
+    },
+
+    /**
+     * Hide the modifier banner and remove canvas effects.
+     */
+    hideModifierBanner: function () {
+      var banner = document.getElementById('modifier-banner');
+      var canvas = document.getElementById('level-canvas');
+      if (banner) {
+        banner.className = 'modifier-banner hidden';
+      }
+      if (canvas) {
+        canvas.className = '';
+      }
+    },
+
+    /**
      * Show a specific screen by id, hide all others.
      * @param {string} id — screen element id (without 'screen-' prefix)
      */
@@ -240,6 +329,34 @@
         });
       };
       document.head.appendChild(script);
+    },
+
+    /**
+     * Spawn taunt emojis on the restart screen.
+     */
+    spawnTauntEmojis: function () {
+      var container = document.getElementById('taunt-emojis');
+      if (!container) return;
+      container.innerHTML = '';
+
+      var emojis = ['\uD83D\uDC4E', '\uD83E\uDD21', '\uD83D\uDE02', '\uD83D\uDC80', '\uD83D\uDD95', '\uD83C\uDFAD', '\uD83D\uDCA9', '\uD83D\uDE44', '\uD83E\uDD26', '\uD83D\uDE2D'];
+      for (var i = 0; i < 10; i++) {
+        var span = document.createElement('span');
+        span.className = 'taunt-emoji';
+        span.textContent = emojis[i % emojis.length];
+        span.style.left = (5 + Math.random() * 90) + '%';
+        span.style.animationDuration = (3 + Math.random() * 3) + 's';
+        span.style.animationDelay = (Math.random() * 2) + 's';
+        container.appendChild(span);
+      }
+    },
+
+    /**
+     * Clear taunt emojis from the restart screen.
+     */
+    clearTauntEmojis: function () {
+      var container = document.getElementById('taunt-emojis');
+      if (container) container.innerHTML = '';
     },
   };
 
