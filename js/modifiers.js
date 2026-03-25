@@ -5,27 +5,43 @@
 (function () {
   'use strict';
 
-  var MODIFIERS = ['DRUNKEN', 'RAINBOW', 'EPILEPTIC', 'FIFTY_FIFTY', 'DUPLICATE'];
+  var MODIFIERS = ['DRUNKEN', 'RAINBOW', 'EPILEPTIC', 'FIFTY_FIFTY', 'THREE_SPHERES'];
 
   var active = null;
   var fakeTargetGamma = null;
   var roundIndex = 0;
+  var modifiersSeen = {};
 
   /**
    * Roll a new modifier. First round (index 0) is always clean.
-   * 30% chance for a modifier on subsequent rounds.
+   * 40% chance for a modifier on subsequent rounds.
+   * If in bonus rounds, force untried modifiers.
+   * @param {boolean} forceUntried — if true, pick a modifier not yet tried
    * @returns {string|null} modifier name or null
    */
-  function roll() {
+  function roll(forceUntried) {
     if (roundIndex === 0) {
       roundIndex++;
       return null;
     }
     roundIndex++;
 
-    if (Math.random() < 0.3) {
-      var idx = Math.floor(Math.random() * MODIFIERS.length);
-      return MODIFIERS[idx];
+    if (forceUntried) {
+      var untried = [];
+      for (var i = 0; i < MODIFIERS.length; i++) {
+        if (!modifiersSeen[MODIFIERS[i]]) {
+          untried.push(MODIFIERS[i]);
+        }
+      }
+      if (untried.length > 0) {
+        var idx = Math.floor(Math.random() * untried.length);
+        return untried[idx];
+      }
+    }
+
+    if (Math.random() < 0.4) {
+      var idx2 = Math.floor(Math.random() * MODIFIERS.length);
+      return MODIFIERS[idx2];
     }
     return null;
   }
@@ -50,16 +66,33 @@
       active = null;
       fakeTargetGamma = null;
       roundIndex = 0;
+      modifiersSeen = {};
+    },
+
+    /**
+     * Check if all modifiers have been tried at least once.
+     * @returns {boolean}
+     */
+    allTried: function () {
+      for (var i = 0; i < MODIFIERS.length; i++) {
+        if (!modifiersSeen[MODIFIERS[i]]) return false;
+      }
+      return true;
     },
 
     /**
      * Roll and activate a modifier for the next round.
      * @param {number} realTarget — the real target angle for this round
+     * @param {boolean} forceUntried — force picking untried modifiers
      * @returns {string|null} activated modifier name or null
      */
-    activate: function (realTarget) {
-      var name = roll();
+    activate: function (realTarget, forceUntried) {
+      var name = roll(forceUntried);
       active = name;
+
+      if (name) {
+        modifiersSeen[name] = true;
+      }
 
       if (name === 'FIFTY_FIFTY') {
         fakeTargetGamma = generateFakeTarget(realTarget);
@@ -95,13 +128,17 @@
     },
 
     /**
-     * Compute a ghost bubble angle for DUPLICATE modifier.
+     * Compute ghost bubble angles for THREE_SPHERES modifier.
      * @param {number} timestamp — Date.now()
      * @param {number} realGamma — the real bubble angle
+     * @param {number} index — ghost index (0 or 1)
      * @returns {number}
      */
-    getGhostAngle: function (timestamp, realGamma) {
-      return Math.sin(timestamp * 0.003) * 20 + realGamma + 10;
+    getGhostAngle: function (timestamp, realGamma, index) {
+      if (index === 0) {
+        return Math.sin(timestamp * 0.002) * 15 + realGamma + 8;
+      }
+      return Math.cos(timestamp * 0.0025) * 15 + realGamma - 8;
     },
   };
 

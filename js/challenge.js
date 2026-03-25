@@ -54,12 +54,14 @@
     /** @type {number|null} */
     timerInterval: null,
     active: false,
+    totalTarget: TOTAL_ANGLES,
 
     /** Callbacks — set by app.js */
     onAngleComplete: null,
     onAllComplete: null,
     onTimeout: null,
     onTick: null,
+    onRoundsExtended: null,
 
     /**
      * Generate a fresh set of angles and reset state.
@@ -69,6 +71,19 @@
       this.currentIndex = 0;
       this.inRangeSince = null;
       this.active = true;
+      this.totalTarget = TOTAL_ANGLES;
+    },
+
+    /**
+     * Add extra rounds to the challenge.
+     * @param {number} count
+     */
+    addRounds: function (count) {
+      var newAngles = generateAngles(count);
+      for (var i = 0; i < newAngles.length; i++) {
+        this.angles.push(newAngles[i]);
+      }
+      this.totalTarget += count;
     },
 
     /**
@@ -120,10 +135,14 @@
         } else if (Date.now() - this.inRangeSince >= HOLD_MS) {
           this.stopTimer();
           this.currentIndex++;
-          if (this.currentIndex >= TOTAL_ANGLES) {
+          if (this.currentIndex >= this.totalTarget) {
             this.active = false;
             if (this.onAllComplete) this.onAllComplete();
           } else {
+            // Check if we just completed the initial block
+            if (this.currentIndex === TOTAL_ANGLES && this.onRoundsExtended) {
+              this.onRoundsExtended(this.currentIndex);
+            }
             if (this.onAngleComplete) this.onAngleComplete(this.currentIndex);
             this.startTimer();
           }

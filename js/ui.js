@@ -86,11 +86,63 @@
       if (!ctx) return;
       ctx.clearRect(0, 0, size, size);
 
+      var activeMod = null;
+      var timestamp = Date.now();
+      if (window.TiltCaptcha && window.TiltCaptcha.modifiers) {
+        activeMod = window.TiltCaptcha.modifiers.getActive();
+      }
+
+      // Determine colors based on active modifier
+      var bgColor = COLORS.bg;
+      var bubbleColor = COLORS.bubble;
+      var tickColor = COLORS.tick;
+      var tickMajorColor = COLORS.tickMajor;
+      var ringColor = COLORS.ring;
+      var centerDotColor = COLORS.centerDot;
+      var lineColor = 'rgba(228, 230, 237, 0.15)';
+
+      if (activeMod === 'RAINBOW') {
+        var hue = (timestamp * 0.15) % 360;
+        bgColor = 'hsl(' + hue + ', 40%, 12%)';
+        bubbleColor = 'hsl(' + ((hue + 120) % 360) + ', 80%, 80%)';
+        tickColor = 'hsl(' + ((hue + 60) % 360) + ', 30%, 25%)';
+        tickMajorColor = 'hsl(' + ((hue + 60) % 360) + ', 40%, 35%)';
+        ringColor = 'hsl(' + ((hue + 180) % 360) + ', 30%, 20%)';
+        centerDotColor = 'hsl(' + ((hue + 90) % 360) + ', 40%, 25%)';
+        lineColor = 'hsla(' + hue + ', 60%, 70%, 0.3)';
+      } else if (activeMod === 'EPILEPTIC') {
+        var flashPhase = Math.floor(timestamp / 300) % 2;
+        if (flashPhase === 0) {
+          bgColor = '#ffffff';
+          bubbleColor = '#000000';
+          ringColor = '#cccccc';
+        } else {
+          bgColor = '#000000';
+          bubbleColor = '#ffffff';
+          ringColor = '#333333';
+        }
+      }
+
       // Background circle
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fillStyle = COLORS.bg;
+      ctx.fillStyle = bgColor;
       ctx.fill();
+
+      // Green screen glow for drunken
+      if (activeMod === 'DRUNKEN') {
+        ctx.save();
+        ctx.globalAlpha = 0.3 + Math.sin(timestamp * 0.005) * 0.15;
+        var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+        grad.addColorStop(0, 'rgba(0, 255, 0, 0.3)');
+        grad.addColorStop(0.7, 'rgba(0, 200, 0, 0.1)');
+        grad.addColorStop(1, 'rgba(0, 255, 0, 0.2)');
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.restore();
+      }
 
       // Tick marks every 10 degrees (full 180° arc from left to right)
       for (var deg = -90; deg <= 90; deg += 10) {
@@ -101,7 +153,7 @@
         ctx.beginPath();
         ctx.moveTo(cx + innerR * Math.cos(rad), cy + innerR * Math.sin(rad));
         ctx.lineTo(cx + outerR * Math.cos(rad), cy + outerR * Math.sin(rad));
-        ctx.strokeStyle = isMajor ? COLORS.tickMajor : COLORS.tick;
+        ctx.strokeStyle = isMajor ? tickMajorColor : tickColor;
         ctx.lineWidth = isMajor ? 2 : 1;
         ctx.stroke();
       }
@@ -109,41 +161,46 @@
       // Target zone arc (highlighted sector at target angle on the circle)
       var targetRad = ((targetGamma - 90) * Math.PI) / 180;
       var halfArc = (2 * Math.PI) / 180; // 2 degrees tolerance
+      var zoneColor = COLORS.targetZone;
+
+      if (activeMod === 'RAINBOW') {
+        var hue2 = (timestamp * 0.15) % 360;
+        zoneColor = 'hsla(' + hue2 + ', 70%, 60%, 0.3)';
+      }
+
+      // 50-50: show TWO identical zones (real + fake), neither highlighted differently
+      if (activeMod === 'FIFTY_FIFTY') {
+        var fakeTarget = window.TiltCaptcha.modifiers.getFakeTarget();
+        if (fakeTarget != null) {
+          var fakeRad = ((fakeTarget - 90) * Math.PI) / 180;
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius - 4, fakeRad - halfArc, fakeRad + halfArc);
+          ctx.lineTo(cx, cy);
+          ctx.closePath();
+          ctx.fillStyle = zoneColor;
+          ctx.fill();
+        }
+      }
+
+      // Real target zone - drawn the same as fake (identical color in 50-50)
       ctx.beginPath();
       ctx.arc(cx, cy, radius - 4, targetRad - halfArc, targetRad + halfArc);
       ctx.lineTo(cx, cy);
       ctx.closePath();
-      ctx.fillStyle = COLORS.targetZone;
+      ctx.fillStyle = zoneColor;
       ctx.fill();
-
-      // Fake target zone (50-50 modifier)
-      if (window.TiltCaptcha && window.TiltCaptcha.modifiers) {
-        var mods = window.TiltCaptcha.modifiers;
-        if (mods.getActive() === 'FIFTY_FIFTY') {
-          var fakeTarget = mods.getFakeTarget();
-          if (fakeTarget != null) {
-            var fakeRad = ((fakeTarget - 90) * Math.PI) / 180;
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius - 4, fakeRad - halfArc, fakeRad + halfArc);
-            ctx.lineTo(cx, cy);
-            ctx.closePath();
-            ctx.fillStyle = 'rgba(236, 72, 153, 0.3)';
-            ctx.fill();
-          }
-        }
-      }
 
       // Outer ring
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.strokeStyle = COLORS.ring;
+      ctx.strokeStyle = ringColor;
       ctx.lineWidth = 3;
       ctx.stroke();
 
       // Center dot
       ctx.beginPath();
       ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-      ctx.fillStyle = COLORS.centerDot;
+      ctx.fillStyle = centerDotColor;
       ctx.fill();
 
       // Bubble — moves along the arc at bubble radius from center
@@ -160,48 +217,59 @@
       var bubbleR = 14;
 
       // Glow
+      var glowColor = COLORS.bubbleGlow;
+      if (activeMod === 'RAINBOW') {
+        glowColor = 'hsla(' + ((timestamp * 0.15) % 360) + ', 80%, 60%, 0.6)';
+      }
       if (isInTolerance) {
         ctx.beginPath();
         ctx.arc(bubbleX, bubbleY, bubbleR + 6, 0, Math.PI * 2);
-        ctx.fillStyle = COLORS.bubbleGlow;
+        ctx.fillStyle = glowColor;
         ctx.fill();
       }
 
       // Bubble circle
       ctx.beginPath();
       ctx.arc(bubbleX, bubbleY, bubbleR, 0, Math.PI * 2);
-      ctx.fillStyle = COLORS.bubble;
+      ctx.fillStyle = bubbleColor;
       ctx.fill();
 
       // Direction indicator (line from center to bubble)
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.lineTo(bubbleX, bubbleY);
-      ctx.strokeStyle = 'rgba(228, 230, 237, 0.15)';
+      ctx.strokeStyle = lineColor;
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Ghost bubble (Duplicate modifier)
-      if (window.TiltCaptcha && window.TiltCaptcha.modifiers) {
-        var mods = window.TiltCaptcha.modifiers;
-        if (mods.getActive() === 'DUPLICATE') {
-          var ghostAngle = mods.getGhostAngle(Date.now(), clampedGamma);
+      // Ghost bubbles (Three Spheres modifier) - draw 2 identical ghosts
+      if (activeMod === 'THREE_SPHERES') {
+        for (var gi = 0; gi < 2; gi++) {
+          var ghostAngle = window.TiltCaptcha.modifiers.getGhostAngle(timestamp, clampedGamma, gi);
           var clampedGhost = Math.max(-45, Math.min(45, ghostAngle));
           var ghostRad = ((clampedGhost - 90) * Math.PI) / 180;
           var ghostX = cx + bubbleOrbitR * Math.cos(ghostRad);
           var ghostY = cy + bubbleOrbitR * Math.sin(ghostRad);
-          var ghostR = 12;
 
+          // Ghost glow (same as real)
+          if (isInTolerance) {
+            ctx.beginPath();
+            ctx.arc(ghostX, ghostY, bubbleR + 6, 0, Math.PI * 2);
+            ctx.fillStyle = glowColor;
+            ctx.fill();
+          }
+
+          // Ghost bubble - identical to real bubble
           ctx.beginPath();
-          ctx.arc(ghostX, ghostY, ghostR, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(96, 165, 250, 0.4)';
+          ctx.arc(ghostX, ghostY, bubbleR, 0, Math.PI * 2);
+          ctx.fillStyle = bubbleColor;
           ctx.fill();
 
           // Ghost direction indicator
           ctx.beginPath();
           ctx.moveTo(cx, cy);
           ctx.lineTo(ghostX, ghostY);
-          ctx.strokeStyle = 'rgba(96, 165, 250, 0.15)';
+          ctx.strokeStyle = lineColor;
           ctx.lineWidth = 2;
           ctx.stroke();
         }
@@ -273,7 +341,7 @@
         RAINBOW: 'RAINBOW MODE',
         EPILEPTIC: 'EPILEPTIC MODE',
         FIFTY_FIFTY: '50-50 MODE',
-        DUPLICATE: 'DUPLICATE MODE',
+        THREE_SPHERES: 'THREE SPHERES MODE',
       };
 
       var cssClass = 'mod-' + modifier.toLowerCase().replace('_', '-');
@@ -339,14 +407,24 @@
       if (!container) return;
       container.innerHTML = '';
 
-      var emojis = ['\uD83D\uDC4E', '\uD83E\uDD21', '\uD83D\uDE02', '\uD83D\uDC80', '\uD83D\uDD95', '\uD83C\uDFAD', '\uD83D\uDCA9', '\uD83D\uDE44', '\uD83E\uDD26', '\uD83D\uDE2D'];
-      for (var i = 0; i < 10; i++) {
+      var emojis = [
+        '\uD83D\uDC4E', '\uD83E\uDD21', '\uD83D\uDE02', '\uD83D\uDC80', '\uD83D\uDD95',
+        '\uD83C\uDFAD', '\uD83D\uDCA9', '\uD83D\uDE44', '\uD83E\uDD26', '\uD83D\uDE2D',
+        '\uD83D\uDE08', '\uD83D\uDC7F', '\uD83D\uDCA2', '\uD83D\uDEAB', '\uD83C\uDF46',
+        '\uD83D\uDD25', '\uD83D\uDCA3', '\uD83D\uDC79', '\uD83E\uDDEC', '\uD83D\uDE21',
+        '\uD83D\uDE36', '\uD83E\uDD2C', '\uD83D\uDCA5', '\uD83D\uDC7B', '\uD83D\uDC80',
+        '\uD83E\uDD15', '\uD83D\uDE05', '\uD83C\uDFB5', '\uD83D\uDD95', '\uD83E\uDD37',
+        '\uD83D\uDE44', '\uD83E\uDD21', '\uD83D\uDCAF', '\uD83D\uDE02', '\uD83C\uDFAD',
+      ];
+
+      for (var i = 0; i < 35; i++) {
         var span = document.createElement('span');
         span.className = 'taunt-emoji';
         span.textContent = emojis[i % emojis.length];
-        span.style.left = (5 + Math.random() * 90) + '%';
-        span.style.animationDuration = (3 + Math.random() * 3) + 's';
-        span.style.animationDelay = (Math.random() * 2) + 's';
+        span.style.left = (Math.random() * 100) + '%';
+        span.style.fontSize = (1.2 + Math.random() * 1.5) + 'rem';
+        span.style.animationDuration = (2 + Math.random() * 4) + 's';
+        span.style.animationDelay = (Math.random() * 3) + 's';
         container.appendChild(span);
       }
     },

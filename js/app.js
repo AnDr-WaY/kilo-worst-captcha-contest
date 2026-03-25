@@ -22,6 +22,7 @@
   var state = STATES.DETECT;
   var btnStart = document.getElementById('btn-start');
   var btnRestart = document.getElementById('btn-restart');
+  var bonusMessage = document.getElementById('bonus-message');
 
   ui.init();
 
@@ -36,12 +37,13 @@
     modifiers.deactivate();
     ui.hideModifierBanner();
 
-    ui.updateProgress(nextIndex + 1, challenge.TOTAL_ANGLES);
+    ui.updateProgress(nextIndex + 1, challenge.totalTarget);
     ui.setTarget(challenge.getCurrentTarget());
     ui.updateTargetText(challenge.getCurrentTarget());
 
     // Roll a new modifier for this round
-    var mod = modifiers.activate(challenge.getCurrentTarget());
+    var forceUntried = !modifiers.allTried() && nextIndex >= challenge.TOTAL_ANGLES;
+    var mod = modifiers.activate(challenge.getCurrentTarget(), forceUntried);
     if (mod) {
       ui.showModifierBanner(mod);
       // For 50-50, show the fake target in the UI text
@@ -51,6 +53,18 @@
           ui.updateTargetText(fake);
         }
       }
+    }
+  };
+
+  challenge.onRoundsExtended = function (currentIndex) {
+    challenge.addRounds(5);
+    ui.updateProgress(currentIndex + 1, challenge.totalTarget);
+    // Show bonus message
+    var msg = document.getElementById('bonus-message');
+    if (msg) {
+      msg.textContent = 'Not sure if you are a human + 5 rounds bozo';
+      msg.style.display = 'block';
+      setTimeout(function () { msg.style.display = 'none'; }, 3000);
     }
   };
 
@@ -131,7 +145,7 @@
     modifiers.reset();
 
     var idx = challenge.currentIndex;
-    ui.updateProgress(idx + 1, challenge.TOTAL_ANGLES);
+    ui.updateProgress(idx + 1, challenge.totalTarget);
     ui.setTarget(challenge.getCurrentTarget());
     ui.updateTargetText(challenge.getCurrentTarget());
 
